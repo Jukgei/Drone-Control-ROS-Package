@@ -38,7 +38,7 @@ void FlightControl::FlightControlNode::InitSubcribers(ros::NodeHandle &n){
 
 void FlightControl::FlightControlNode::InitPublishers(ros::NodeHandle &n){
     this->CtrAttitudePublisher = 
-        n.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_rollpitch_yawrate_zposition", 10);
+        n.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_generic", 10);
     
 //    std::thread pub(std::bind(&FlightControlNode::publish,this));
 //    pub.detach();
@@ -68,20 +68,21 @@ void FlightControl::FlightControlNode::FlightControlThread(){
     if(!isTakeoff){
         ROS_ERROR("Cannot Takeoff");
     }
+    ROS_INFO("Control Start");
     while(true){
        //run flight control algorithm 
        
         sensor_msgs::Joy controlVelYawRate;
-        //uint8_t flag = (DJISDK::VERTICAL_VELOCITY   |
-        //            DJISDK::HORIZONTAL_VELOCITY |
-        //            DJISDK::YAW_RATE            |
-        //            DJISDK::HORIZONTAL_GROUND   |
-        //            DJISDK::STABLE_ENABLE);
+        uint8_t flag = (DJISDK::VERTICAL_THRUST   |
+                    DJISDK::HORIZONTAL_ANGLE |
+                    DJISDK::YAW_RATE            |
+                    DJISDK::HORIZONTAL_BODY   |
+                    DJISDK::STABLE_DISABLE);
         controlVelYawRate.axes.push_back(0);    //roll
         controlVelYawRate.axes.push_back(0);    //pitch
-        controlVelYawRate.axes.push_back(0);    //pz
+        controlVelYawRate.axes.push_back(1.8);    //thrust
         controlVelYawRate.axes.push_back(0);    //yawRate
-        //controlVelYawRate.axes.push_back(flag);
+        controlVelYawRate.axes.push_back(flag);
         
         CtrAttitudePublisher.publish(controlVelYawRate);
          
@@ -125,7 +126,7 @@ bool FlightControl::FlightControlNode::MonitoredTakeoff(){
     ros::spinOnce();
   }
 
-  if(ros::Time::now() - start_time > ros::Duration(5)) {
+  if(ros::Time::now() - start_time > ros::Duration(6)) {
     ROS_ERROR("Takeoff failed. Motors are not spinnning.");
     return false;
   }
@@ -144,7 +145,7 @@ bool FlightControl::FlightControlNode::MonitoredTakeoff(){
     ros::spinOnce();
   }
 
-  if(ros::Time::now() - start_time > ros::Duration(20)) {
+  if(ros::Time::now() - start_time > ros::Duration(22)) {
     ROS_ERROR("Takeoff failed. Aircraft is still on the ground, but the motors are spinning.");
     return false;
   }
