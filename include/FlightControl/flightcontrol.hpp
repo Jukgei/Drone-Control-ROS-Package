@@ -15,6 +15,8 @@
 
 #include <tf/tf.h>
 #include <sensor_msgs/Joy.h>
+#include "FlightControl/state.h"
+#include "FlightControl/opticalflow.h"
 
 namespace FlightControl{
 
@@ -39,7 +41,9 @@ private:
     ros::Subscriber AttitudeSubscriber;     //Quaternion
     ros::Subscriber FlightStatusSubscriber; //uint8_t
     ros::Subscriber DisplayModeSubscriber;  //Details can be found in DisplayMode enum in dji_sdk.h
-    
+    ros::Subscriber HeightSubscriber;
+    ros::Subscriber DeltaPositionSubscriber;
+
     ros::Publisher CtrAttitudePublisher;
    
     ros::ServiceClient CtrlAuthorityService;
@@ -48,11 +52,19 @@ private:
     void GetQuaternionCallBack(const geometry_msgs::QuaternionStamped::ConstPtr& msg);
     void GetFlightStatusCallBack(const std_msgs::UInt8::ConstPtr& msg);
     void GetDisplayModeCallBack(const std_msgs::UInt8::ConstPtr& msg);
+    void GetHeightCallBack(const FlightControl::state::ConstPtr& msg);
+    void GetDeltaPositionCallBack(const FlightControl::opticalflow::ConstPtr& msg);
 
     geometry_msgs::Quaternion Attitude;
     uint8_t FlightStatus;
     uint8_t DisplayMode;
 
+    //The height of UAV
+    float height;
+    
+    //Displacement
+    float x;
+    float y;
 };
 
 }

@@ -3,12 +3,14 @@ project(FlightControl)
 
 
 find_package(catkin REQUIRED COMPONENTS
+        std_msgs
         roscpp
         geometry_msgs
         dji_sdk
         image_transport # for message_filter
         )
 
+add_message_files(FILES state.msg opticalflow.msg)
 find_package(DJIOSDK REQUIRED)
 
 find_package(darknet_ros QUIET)
@@ -24,6 +26,8 @@ include_directories(
 )
 
 
+generate_messages(DEPENDENCIES std_msgs)
+catkin_package()
 
 add_executable(flightcontrol
         src/main.cpp src/flightcontrol.cpp)

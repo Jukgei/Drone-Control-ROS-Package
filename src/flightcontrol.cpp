@@ -4,6 +4,8 @@
 #include <vector>
 #include <unistd.h>
 
+#include "FlightControl/state.h"
+#include "FlightControl/opticalflow.h"
 //using namespace FlightControl;
 
 
@@ -34,6 +36,11 @@ void FlightControl::FlightControlNode::InitSubcribers(ros::NodeHandle &n){
     DisplayModeSubscriber =n.subscribe<std_msgs::UInt8>
         ("dji_sdk/DisplayMode", 10, &FlightControl::FlightControlNode::GetDisplayModeCallBack,this);
 
+    HeightSubscriber = n.subscribe<FlightControl::state>
+        ("state", 10, &FlightControl::FlightControlNode::GetHeightCallBack,this);
+
+    DeltaPositionSubscriber = n.subscribe<FlightControl::opticalflow>
+        ("opticalflow", 10, &FlightControl::FlightControlNode::GetDeltaPositionCallBack,this);
 }
 
 void FlightControl::FlightControlNode::InitPublishers(ros::NodeHandle &n){
@@ -207,4 +214,18 @@ bool FlightControl::FlightControlNode::TakeoffLand(int task){
 
   return true;
 
+}
+
+void FlightControl::FlightControlNode::GetHeightCallBack(const FlightControl::state::ConstPtr& msg){
+    this->height = msg->height;
+    ROS_INFO("Height is %f\n", this->height);
+}
+
+void FlightControl::FlightControlNode::GetDeltaPositionCallBack(const FlightControl::opticalflow::ConstPtr& msg){
+    std::vector<float> temp = msg->displacement;
+    if(temp.size() == 2){
+        x = temp[0];
+        y = temp[1];
+    }
+    ROS_INFO("X is %f, Y is %f\n",x,y);
 }
