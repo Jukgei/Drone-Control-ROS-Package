@@ -1,8 +1,11 @@
 #include "../include/FlightControl/flightcontrol.hpp"
+#include "../include/FlightControl/pid.hpp"
 #include <thread>
 #include <iostream>
 #include <vector>
 #include <unistd.h>
+
+
 
 #include "FlightControl/state.h"
 #include "FlightControl/opticalflow.h"
@@ -79,9 +82,14 @@ void FlightControl::FlightControlNode::FlightControlThread(){
         ROS_ERROR("Cannot Takeoff");
     }
     ROS_INFO("Control Start");
+    
+    FlightControl::pid myVxController(0.1,0,0,10,0); 
+
     while(true){
        //run flight control algorithm 
-       
+        
+        float pitch = myVxController.PidOutput(1,HorizontalVelocity.x) ;
+
         sensor_msgs::Joy controlVelYawRate;
         uint8_t flag = (DJISDK::VERTICAL_THRUST   |
                     DJISDK::HORIZONTAL_ANGLE |
@@ -90,12 +98,13 @@ void FlightControl::FlightControlNode::FlightControlThread(){
                     DJISDK::STABLE_DISABLE);
         controlVelYawRate.axes.push_back(0);    //roll
         controlVelYawRate.axes.push_back(0);    //pitch
-        controlVelYawRate.axes.push_back(1.8);    //thrust
+        controlVelYawRate.axes.push_back(30);    //thrust
         controlVelYawRate.axes.push_back(0);    //yawRate
         controlVelYawRate.axes.push_back(flag);
         
         CtrAttitudePublisher.publish(controlVelYawRate);
-         
+        
+        usleep(10000);
         
     }
 }

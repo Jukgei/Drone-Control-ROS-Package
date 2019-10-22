@@ -30,7 +30,7 @@ generate_messages(DEPENDENCIES std_msgs)
 catkin_package()
 
 add_executable(flightcontrol
-        src/main.cpp src/flightcontrol.cpp)
+        src/main.cpp src/flightcontrol.cpp src/pid.cpp)
 
 target_link_libraries(flightcontrol
         ${catkin_LIBRARIES}
