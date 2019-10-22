@@ -83,12 +83,12 @@ void FlightControl::FlightControlNode::FlightControlThread(){
     }
     ROS_INFO("Control Start");
     
-    FlightControl::pid myVxController(0.1,0,0,10,0); 
+    FlightControl::pid myVxController(0.1,0.01,0.001,10,-10); 
 
     while(true){
        //run flight control algorithm 
         
-        float pitch = myVxController.PidOutput(1,HorizontalVelocity.x) ;
+        float pitch = myVxController.PidOutput(1,HorizontalVelocity.y) ;
 
         sensor_msgs::Joy controlVelYawRate;
         uint8_t flag = (DJISDK::VERTICAL_THRUST   |
@@ -97,8 +97,8 @@ void FlightControl::FlightControlNode::FlightControlThread(){
                     DJISDK::HORIZONTAL_BODY   |
                     DJISDK::STABLE_DISABLE);
         controlVelYawRate.axes.push_back(0);    //roll
-        controlVelYawRate.axes.push_back(0);    //pitch
-        controlVelYawRate.axes.push_back(30);    //thrust
+        controlVelYawRate.axes.push_back(pitch);    //pitch
+        controlVelYawRate.axes.push_back(45);    //thrust
         controlVelYawRate.axes.push_back(0);    //yawRate
         controlVelYawRate.axes.push_back(flag);
         

@@ -27,8 +27,10 @@ float FlightControl::pid::PidOutput(float SetPoint, float Input){
      
     uint32_t dt = this->TimeInterval.count();
 
-    this->Error = Input - SetPoint;
+    //this->Error = Input - SetPoint;
  
+    this->Error = SetPoint - Input;
+    
     this->IntegralError += Ki * Error * dt;
 
     this->DifferentialError = (Error - PastError) / dt;
