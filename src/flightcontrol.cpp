@@ -36,6 +36,9 @@ void FlightControl::FlightControlNode::InitSubcribers(ros::NodeHandle &n){
     DisplayModeSubscriber =n.subscribe<std_msgs::UInt8>
         ("dji_sdk/DisplayMode", 10, &FlightControl::FlightControlNode::GetDisplayModeCallBack,this);
 
+    HorizontalVelocitySubscriber = n.subscribe<geometry_msgs::Vector3Stamped>
+        ("dji_sdk/velocity", 100, &FlightControl::FlightControlNode::GetVelocityCallBack,this);
+
     HeightSubscriber = n.subscribe<FlightControl::state>
         ("state", 10, &FlightControl::FlightControlNode::GetHeightCallBack,this);
 
@@ -228,4 +231,11 @@ void FlightControl::FlightControlNode::GetDeltaPositionCallBack(const FlightCont
         y = temp[1];
     }
     ROS_INFO("X is %f, Y is %f\n",x,y);
+}
+
+
+void FlightControl::FlightControlNode::GetVelocityCallBack(const geometry_msgs::Vector3Stamped::ConstPtr & msg){
+    this->HorizontalVelocity = msg->vector;
+    ROS_INFO("Vx:%f, Vy:%f, Vz:%f \n", HorizontalVelocity.x,HorizontalVelocity.y,HorizontalVelocity.z);
+
 }

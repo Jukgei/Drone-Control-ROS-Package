@@ -10,7 +10,7 @@ int main( int argc, char **argv ){
     //RoboticArm::RoboticArmNode * myArmNode = new RoboticArm::RoboticArmNode(n);
     FlightControl::FlightControlNode *myFlightControlNode = new FlightControl::FlightControlNode(n);
 
-    ros::AsyncSpinner spinner(3);
+    ros::AsyncSpinner spinner(4);
     spinner.start();
     ros::waitForShutdown();
 

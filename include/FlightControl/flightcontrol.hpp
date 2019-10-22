@@ -43,6 +43,7 @@ private:
     ros::Subscriber DisplayModeSubscriber;  //Details can be found in DisplayMode enum in dji_sdk.h
     ros::Subscriber HeightSubscriber;
     ros::Subscriber DeltaPositionSubscriber;
+    ros::Subscriber HorizontalVelocitySubscriber;
 
     ros::Publisher CtrAttitudePublisher;
    
@@ -52,9 +53,11 @@ private:
     void GetQuaternionCallBack(const geometry_msgs::QuaternionStamped::ConstPtr& msg);
     void GetFlightStatusCallBack(const std_msgs::UInt8::ConstPtr& msg);
     void GetDisplayModeCallBack(const std_msgs::UInt8::ConstPtr& msg);
+    void GetVelocityCallBack(const geometry_msgs::Vector3Stamped::ConstPtr & msg);
     void GetHeightCallBack(const FlightControl::state::ConstPtr& msg);
     void GetDeltaPositionCallBack(const FlightControl::opticalflow::ConstPtr& msg);
-
+    
+    geometry_msgs::Vector3 HorizontalVelocity;
     geometry_msgs::Quaternion Attitude;
     uint8_t FlightStatus;
     uint8_t DisplayMode;
