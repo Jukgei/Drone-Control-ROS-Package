@@ -90,7 +90,7 @@ void FlightControl::FlightControlNode::FlightControlThread(){
     
     FlightControl::pid myVxController(0.1,0.01,0.001,10,-10); 
    
-    FlightControl::pid myThrustController(20, 0.01, 0.001, 100.0, 0);
+    FlightControl::pid myThrustController(2.5, 0.0105, 0.05, 100.0, 0);
 
     this->HeightAboveTakeoff = HeightGps;
 
@@ -99,7 +99,7 @@ void FlightControl::FlightControlNode::FlightControlThread(){
        //run flight control algorithm 
         
         double pitch = myVxController.PidOutput(1,HorizontalVelocity.y) ;
-        double thrust = myThrustController.PidOutput(2.0,HeightGps-HeightAboveTakeoff);
+        double thrust = myThrustController.PidOutput(20.0,HeightGps-HeightAboveTakeoff);
         sensor_msgs::Joy controlVelYawRate;
         uint8_t flag = (DJISDK::VERTICAL_THRUST   |
                     DJISDK::HORIZONTAL_ANGLE      |
@@ -176,7 +176,7 @@ bool FlightControl::FlightControlNode::MonitoredTakeoff(){
     ros::spinOnce();
   }
 
-  if(ros::Time::now() - start_time > ros::Duration(2)) {
+  if(ros::Time::now() - start_time > ros::Duration(3)) {
     ROS_ERROR("Takeoff failed. Aircraft is still on the ground, but the motors are spinning.");
     return false;
   }
