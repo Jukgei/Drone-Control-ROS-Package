@@ -13,10 +13,10 @@ namespace FlightControl{
 class pid
 {
 public:
-    pid( float Kp, float Ki, float Kd, float Max, float Min ); 
+    pid( double Kp, double Ki, double Kd, double Max, double Min ); 
 
-    float PidOutput(float SetPoint,float Input);
-    float clipping();
+    double PidOutput(double SetPoint,double Input);
+    double clipping();
 
 
 private:
@@ -24,22 +24,22 @@ private:
     high_resolution_clock::time_point EndTime;
     milliseconds TimeInterval;  
     
-    float Error;
-    float PastError;
-    float IntegralError;
-    float DifferentialError;
+    double Error;
+    double PastError;
+    double IntegralError;
+    double DifferentialError;
 
-    float Output;
+    double Output;
 
-    float Input;
-    float SetPoint; 
+    double Input;
+    double SetPoint; 
     
-    float Kp;
-    float Ki;
-    float Kd;
+    double Kp;
+    double Ki;
+    double Kd;
     
-    float MaxLimit;
-    float MinLimit;
+    double MaxLimit;
+    double MinLimit;
     
 };
 

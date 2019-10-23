@@ -40,8 +40,12 @@ void FlightControl::FlightControlNode::InitSubcribers(ros::NodeHandle &n){
         ("dji_sdk/DisplayMode", 10, &FlightControl::FlightControlNode::GetDisplayModeCallBack,this);
 
     HorizontalVelocitySubscriber = n.subscribe<geometry_msgs::Vector3Stamped>
-        ("dji_sdk/velocity", 100, &FlightControl::FlightControlNode::GetVelocityCallBack,this);
+        ("dji_sdk/velocity", 10, &FlightControl::FlightControlNode::GetVelocityCallBack,this);
 
+    GpsHeightSubscriber = n.subscribe<geometry_msgs::PointStamped>
+        ("dji_sdk/local_position", 10, &FlightControl::FlightControlNode::GetGpsHeightCallBack,this);
+
+    //From radar
     HeightSubscriber = n.subscribe<FlightControl::state>
         ("state", 10, &FlightControl::FlightControlNode::GetHeightCallBack,this);
 
@@ -63,6 +67,7 @@ void FlightControl::FlightControlNode::InitServices(ros::NodeHandle &n){
 
     DroneTaskControlService = n.serviceClient<dji_sdk::DroneTaskControl>
         ("dji_sdk/drone_task_control");
+
 }
 
 void FlightControl::FlightControlNode::InitFlightControlThread(){
@@ -84,21 +89,26 @@ void FlightControl::FlightControlNode::FlightControlThread(){
     ROS_INFO("Control Start");
     
     FlightControl::pid myVxController(0.1,0.01,0.001,10,-10); 
+   
+    FlightControl::pid myThrustController(2, 0.01, 0.001, 100.0, 0);
+
+    this->HeightAboveTakeoff = HeightGps;
+
 
     while(true){
        //run flight control algorithm 
         
-        float pitch = myVxController.PidOutput(1,HorizontalVelocity.y) ;
-
+        double pitch = myVxController.PidOutput(1,HorizontalVelocity.y) ;
+        double thrust = myThrustController.PidOutput(2.0,HeightGps-HeightAboveTakeoff);
         sensor_msgs::Joy controlVelYawRate;
         uint8_t flag = (DJISDK::VERTICAL_THRUST   |
-                    DJISDK::HORIZONTAL_ANGLE |
-                    DJISDK::YAW_RATE            |
-                    DJISDK::HORIZONTAL_BODY   |
+                    DJISDK::HORIZONTAL_ANGLE      |
+                    DJISDK::YAW_ANGLE             |
+                    DJISDK::HORIZONTAL_BODY       |
                     DJISDK::STABLE_DISABLE);
-        controlVelYawRate.axes.push_back(0);    //roll
-        controlVelYawRate.axes.push_back(pitch);    //pitch
-        controlVelYawRate.axes.push_back(45);    //thrust
+        controlVelYawRate.axes.push_back(0);    //roll->Vy
+        controlVelYawRate.axes.push_back(pitch);    //pitch->Vx
+        controlVelYawRate.axes.push_back(thrust);    //thrust
         controlVelYawRate.axes.push_back(0);    //yawRate
         controlVelYawRate.axes.push_back(flag);
         
@@ -107,6 +117,8 @@ void FlightControl::FlightControlNode::FlightControlThread(){
         usleep(10000);
         
     }
+    if(TakeoffLand(dji_sdk::DroneTaskControl::Request::TASK_LAND))
+        ROS_INFO("Landing success");
 }
 
 //void FlightControl::FlightControlNode::Publish(){
@@ -140,12 +152,12 @@ bool FlightControl::FlightControlNode::MonitoredTakeoff(){
   // Step 1.1: Spin the motor
   while (FlightStatus != DJISDK::FlightStatus::STATUS_ON_GROUND &&
          DisplayMode != DJISDK::DisplayMode::MODE_ENGINE_START &&
-         ros::Time::now() - start_time < ros::Duration(5)) {
+         ros::Time::now() - start_time < ros::Duration(3)) {
     ros::Duration(0.01).sleep();
     ros::spinOnce();
   }
 
-  if(ros::Time::now() - start_time > ros::Duration(6)) {
+  if(ros::Time::now() - start_time > ros::Duration(4)) {
     ROS_ERROR("Takeoff failed. Motors are not spinnning.");
     return false;
   }
@@ -159,12 +171,12 @@ bool FlightControl::FlightControlNode::MonitoredTakeoff(){
   // Step 1.2: Get in to the air
   while (FlightStatus != DJISDK::FlightStatus::STATUS_IN_AIR &&
           (DisplayMode != DJISDK::DisplayMode::MODE_ASSISTED_TAKEOFF || DisplayMode != DJISDK::DisplayMode::MODE_AUTO_TAKEOFF) &&
-          ros::Time::now() - start_time < ros::Duration(20)) {
+          ros::Time::now() - start_time < ros::Duration(2)) {
     ros::Duration(0.01).sleep();
     ros::spinOnce();
   }
 
-  if(ros::Time::now() - start_time > ros::Duration(22)) {
+  if(ros::Time::now() - start_time > ros::Duration(2)) {
     ROS_ERROR("Takeoff failed. Aircraft is still on the ground, but the motors are spinning.");
     return false;
   }
@@ -176,7 +188,7 @@ bool FlightControl::FlightControlNode::MonitoredTakeoff(){
 
   // Final check: Finished takeoff
   while ( (DisplayMode == DJISDK::DisplayMode::MODE_ASSISTED_TAKEOFF || DisplayMode == DJISDK::DisplayMode::MODE_AUTO_TAKEOFF) &&
-          ros::Time::now() - start_time < ros::Duration(20)) {
+          ros::Time::now() - start_time < ros::Duration(2)) {
     ros::Duration(0.01).sleep();
     ros::spinOnce();
   }
@@ -229,8 +241,8 @@ bool FlightControl::FlightControlNode::TakeoffLand(int task){
 }
 
 void FlightControl::FlightControlNode::GetHeightCallBack(const FlightControl::state::ConstPtr& msg){
-    this->height = msg->height;
-    ROS_INFO("Height is %f\n", this->height);
+    this->Height = msg->height;
+    //ROS_INFO("Height is %f\n", this->Height);
 }
 
 void FlightControl::FlightControlNode::GetDeltaPositionCallBack(const FlightControl::opticalflow::ConstPtr& msg){
@@ -239,12 +251,17 @@ void FlightControl::FlightControlNode::GetDeltaPositionCallBack(const FlightCont
         x = temp[0];
         y = temp[1];
     }
-    ROS_INFO("X is %f, Y is %f\n",x,y);
+    //ROS_INFO("X:%f, Y:%f\n",x,y);
 }
 
+void FlightControl::FlightControlNode::GetGpsHeightCallBack(const geometry_msgs::PointStamped::ConstPtr & msg){
+    HeightGps = msg->point.z;
+    ROS_INFO("HeightGps: %lf",HeightGps);
+}
 
 void FlightControl::FlightControlNode::GetVelocityCallBack(const geometry_msgs::Vector3Stamped::ConstPtr & msg){
     this->HorizontalVelocity = msg->vector;
-    ROS_INFO("Vx:%f, Vy:%f, Vz:%f \n", HorizontalVelocity.x,HorizontalVelocity.y,HorizontalVelocity.z);
+    //ROS_INFO("Vx:%f, Vy:%f, Vz:%f \n", HorizontalVelocity.y,HorizontalVelocity.x,HorizontalVelocity.z);
 
 }
+

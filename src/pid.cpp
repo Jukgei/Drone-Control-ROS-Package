@@ -1,6 +1,6 @@
 #include "../include/FlightControl/pid.hpp"
 
-FlightControl::pid::pid(float Kp, float Ki, float Kd, float Max, float Min){
+FlightControl::pid::pid(double Kp, double Ki, double Kd, double Max, double Min){
 
     this->Kp = Kp;
     this->Ki = Ki;
@@ -20,7 +20,7 @@ FlightControl::pid::pid(float Kp, float Ki, float Kd, float Max, float Min){
 
 }
 
-float FlightControl::pid::PidOutput(float SetPoint, float Input){
+double FlightControl::pid::PidOutput(double SetPoint, double Input){
     EndTime = high_resolution_clock::now();
     
     this->TimeInterval = std::chrono::duration_cast<milliseconds>(EndTime - StartTime);
@@ -45,7 +45,7 @@ float FlightControl::pid::PidOutput(float SetPoint, float Input){
 
 }
 
-float FlightControl::pid::clipping(){
+double FlightControl::pid::clipping(){
     if(this->Output > MaxLimit)
         this->Output = MaxLimit;
     if(this->Output < MinLimit)

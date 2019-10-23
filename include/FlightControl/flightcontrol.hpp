@@ -44,6 +44,7 @@ private:
     ros::Subscriber HeightSubscriber;
     ros::Subscriber DeltaPositionSubscriber;
     ros::Subscriber HorizontalVelocitySubscriber;
+    ros::Subscriber GpsHeightSubscriber;
 
     ros::Publisher CtrAttitudePublisher;
    
@@ -54,17 +55,20 @@ private:
     void GetFlightStatusCallBack(const std_msgs::UInt8::ConstPtr& msg);
     void GetDisplayModeCallBack(const std_msgs::UInt8::ConstPtr& msg);
     void GetVelocityCallBack(const geometry_msgs::Vector3Stamped::ConstPtr & msg);
+    void GetGpsHeightCallBack(const geometry_msgs::PointStamped::ConstPtr& msg);
     void GetHeightCallBack(const FlightControl::state::ConstPtr& msg);
     void GetDeltaPositionCallBack(const FlightControl::opticalflow::ConstPtr& msg);
-    
+
     geometry_msgs::Vector3 HorizontalVelocity;
     geometry_msgs::Quaternion Attitude;
     uint8_t FlightStatus;
     uint8_t DisplayMode;
 
     //The height of UAV
-    float height;
-    
+    double Height;  //Height from radar
+    double HeightGps; //Height from Gps
+    double HeightAboveTakeoff;
+
     //Displacement
     float x;
     float y;
