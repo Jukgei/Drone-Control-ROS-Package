@@ -5,6 +5,7 @@
 #include <ros/ros.h>
 #include <geometry_msgs/QuaternionStamped.h>
 #include <geometry_msgs/Vector3Stamped.h>
+#include <sensor_msgs/NavSatFix.h>
 #include <std_msgs/UInt8.h>
 
 //DJI include 
@@ -55,7 +56,7 @@ private:
     void GetFlightStatusCallBack(const std_msgs::UInt8::ConstPtr& msg);
     void GetDisplayModeCallBack(const std_msgs::UInt8::ConstPtr& msg);
     void GetVelocityCallBack(const geometry_msgs::Vector3Stamped::ConstPtr & msg);
-    void GetGpsHeightCallBack(const geometry_msgs::PointStamped::ConstPtr& msg);
+    void GetGpsHeightCallBack(const sensor_msgs::NavSatFix::ConstPtr& msg);
     void GetHeightCallBack(const FlightControl::state::ConstPtr& msg);
     void GetDeltaPositionCallBack(const FlightControl::opticalflow::ConstPtr& msg);
 

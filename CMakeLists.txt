@@ -4,6 +4,7 @@ project(FlightControl)
 
 find_package(catkin REQUIRED COMPONENTS
         std_msgs
+        nav_msgs
         roscpp
         geometry_msgs
         dji_sdk

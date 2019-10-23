@@ -42,8 +42,8 @@ void FlightControl::FlightControlNode::InitSubcribers(ros::NodeHandle &n){
     HorizontalVelocitySubscriber = n.subscribe<geometry_msgs::Vector3Stamped>
         ("dji_sdk/velocity", 10, &FlightControl::FlightControlNode::GetVelocityCallBack,this);
 
-    GpsHeightSubscriber = n.subscribe<geometry_msgs::PointStamped>
-        ("dji_sdk/local_position", 10, &FlightControl::FlightControlNode::GetGpsHeightCallBack,this);
+    GpsHeightSubscriber = n.subscribe<sensor_msgs::NavSatFix>
+        ("dji_sdk/gps_position", 10, &FlightControl::FlightControlNode::GetGpsHeightCallBack,this);
 
     //From radar
     HeightSubscriber = n.subscribe<FlightControl::state>
@@ -90,7 +90,7 @@ void FlightControl::FlightControlNode::FlightControlThread(){
     
     FlightControl::pid myVxController(0.1,0.01,0.001,10,-10); 
    
-    FlightControl::pid myThrustController(2, 0.01, 0.001, 100.0, 0);
+    FlightControl::pid myThrustController(20, 0.01, 0.001, 100.0, 0);
 
     this->HeightAboveTakeoff = HeightGps;
 
@@ -103,7 +103,7 @@ void FlightControl::FlightControlNode::FlightControlThread(){
         sensor_msgs::Joy controlVelYawRate;
         uint8_t flag = (DJISDK::VERTICAL_THRUST   |
                     DJISDK::HORIZONTAL_ANGLE      |
-                    DJISDK::YAW_ANGLE             |
+                    DJISDK::YAW_RATE              |
                     DJISDK::HORIZONTAL_BODY       |
                     DJISDK::STABLE_DISABLE);
         controlVelYawRate.axes.push_back(0);    //roll->Vy
@@ -254,8 +254,8 @@ void FlightControl::FlightControlNode::GetDeltaPositionCallBack(const FlightCont
     //ROS_INFO("X:%f, Y:%f\n",x,y);
 }
 
-void FlightControl::FlightControlNode::GetGpsHeightCallBack(const geometry_msgs::PointStamped::ConstPtr & msg){
-    HeightGps = msg->point.z;
+void FlightControl::FlightControlNode::GetGpsHeightCallBack(const sensor_msgs::NavSatFix::ConstPtr & msg){
+    HeightGps = msg->altitude;
     ROS_INFO("HeightGps: %lf",HeightGps);
 }
 
