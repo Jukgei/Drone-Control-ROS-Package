@@ -6,6 +6,8 @@
 #include <geometry_msgs/QuaternionStamped.h>
 #include <geometry_msgs/Vector3Stamped.h>
 #include <sensor_msgs/NavSatFix.h>
+#include <sensor_msgs/LaserScan.h>
+#include <geometry_msgs/TransformStamped.h>
 #include <std_msgs/UInt8.h>
 
 //DJI include 
@@ -43,10 +45,16 @@ private:
     ros::Subscriber FlightStatusSubscriber; //uint8_t
     ros::Subscriber DisplayModeSubscriber;  //Details can be found in DisplayMode enum in dji_sdk.h
     ros::Subscriber HeightSubscriber;
-    ros::Subscriber DeltaPositionSubscriber;
-    ros::Subscriber HorizontalVelocitySubscriber;
     ros::Subscriber GpsHeightSubscriber;
-
+    ros::Subscriber HorizontalVelocitySubscriber;
+    //ros::Subscriber DeltaPositionSubscriber;
+   
+    //Guidance
+    ros::Subscriber GuidanceUltrasonicSubscriber;
+    ros::Subscriber GuidanceVelocitySubscriber;
+    ros::Subscriber GuidanceObstacleDistanceSubscriber;
+    //ros::Subscriber GuidanceIMUSubscriber;
+    
     ros::Publisher CtrAttitudePublisher;
    
     ros::ServiceClient CtrlAuthorityService;
@@ -58,21 +66,30 @@ private:
     void GetVelocityCallBack(const geometry_msgs::Vector3Stamped::ConstPtr & msg);
     void GetGpsHeightCallBack(const sensor_msgs::NavSatFix::ConstPtr& msg);
     void GetHeightCallBack(const FlightControl::state::ConstPtr& msg);
-    void GetDeltaPositionCallBack(const FlightControl::opticalflow::ConstPtr& msg);
+    //void GetDeltaPositionCallBack(const FlightControl::opticalflow::ConstPtr& msg);
 
-    geometry_msgs::Vector3 HorizontalVelocity;
-    geometry_msgs::Quaternion Attitude;
+    void GetHeightGuidanceCallBack(const sensor_msgs::LaserScan::ConstPtr &msg);
+    void GetVelocityGuidanceCallBack(const geometry_msgs::Vector3Stamped::ConstPtr& msg);
+    void GetObstacleDistanceCallBack(const sensor_msgs::LaserScan::ConstPtr &msg);
+    //void GetImuGuidanceCallBack(const geometry_msgs::TransformStamped::ConstPtr &msg);
+
+        
+    geometry_msgs::Vector3 HorizontalVelocity;  //from imu of drone
+    geometry_msgs::Quaternion Attitude;         //from imu of drone 
     uint8_t FlightStatus;
     uint8_t DisplayMode;
 
     //The height of UAV
-    double Height;  //Height from radar
+    double Height;  //Height from guidance
     double HeightGps; //Height from Gps
     double HeightAboveTakeoff;
 
-    //Displacement
-    float x;
-    float y;
+    //Velocity from guidance
+    float Vx;
+    float Vy;
+    float Vz;
+
+    float ObstacleDistance; 
 };
 
 }

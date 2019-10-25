@@ -28,6 +28,8 @@ FlightControl::FlightControlNode::FlightControlNode(ros::NodeHandle &n){
 
 }
 
+
+//Subcribe 9 
 void FlightControl::FlightControlNode::InitSubcribers(ros::NodeHandle &n){
 
     AttitudeSubscriber =n.subscribe<geometry_msgs::QuaternionStamped>
@@ -45,12 +47,25 @@ void FlightControl::FlightControlNode::InitSubcribers(ros::NodeHandle &n){
     GpsHeightSubscriber = n.subscribe<sensor_msgs::NavSatFix>
         ("dji_sdk/gps_position", 10, &FlightControl::FlightControlNode::GetGpsHeightCallBack,this);
 
-    //From radar
-    HeightSubscriber = n.subscribe<FlightControl::state>
-        ("state", 10, &FlightControl::FlightControlNode::GetHeightCallBack,this);
+    //Guidance subcribe
+    GuidanceUltrasonicSubscriber = n.subscribe<sensor_msgs::LaserScan>
+       ("/guidance/ultrasonic",1,&FlightControl::FlightControlNode::GetHeightGuidanceCallBack,this);
 
-    DeltaPositionSubscriber = n.subscribe<FlightControl::opticalflow>
-        ("opticalflow", 10, &FlightControl::FlightControlNode::GetDeltaPositionCallBack,this);
+    GuidanceVelocitySubscriber = n.subscribe<geometry_msgs::Vector3Stamped>
+        ("/guidance/velocity", 1, &FlightControl::FlightControlNode::GetVelocityGuidanceCallBack,this);
+
+    GuidanceObstacleDistanceSubscriber = n.subscribe<sensor_msgs::LaserScan>
+        ("/guidance/obstacle_distance", 1, &FlightControl::FlightControlNode::GetObstacleDistanceCallBack,this);
+
+    //GuidanceIMUSubscriber = n.subscribe<geometry_msgs::TransformStamped>
+    //    ("/guidance/imu", 1, &FlightControl::FlightControlNode::GetImuGuidanceCallBack,this);
+    
+    //From radar
+    //HeightSubscriber = n.subscribe<FlightControl::state>
+    //    ("state", 10, &FlightControl::FlightControlNode::GetHeightCallBack,this);
+
+    //DeltaPositionSubscriber = n.subscribe<FlightControl::opticalflow>
+    //        ("opticalflow", 10, &FlightControl::FlightControlNode::GetDeltaPositionCallBack,this);
 }
 
 void FlightControl::FlightControlNode::InitPublishers(ros::NodeHandle &n){
@@ -125,6 +140,7 @@ void FlightControl::FlightControlNode::FlightControlThread(){
 //    
 //
 //}
+
 
 void FlightControl::FlightControlNode::GetQuaternionCallBack(const geometry_msgs::QuaternionStamped::ConstPtr& msg){
     this->Attitude = msg->quaternion;
@@ -245,14 +261,14 @@ void FlightControl::FlightControlNode::GetHeightCallBack(const FlightControl::st
     //ROS_INFO("Height is %f\n", this->Height);
 }
 
-void FlightControl::FlightControlNode::GetDeltaPositionCallBack(const FlightControl::opticalflow::ConstPtr& msg){
-    std::vector<float> temp = msg->displacement;
-    if(temp.size() == 2){
-        x = temp[0];
-        y = temp[1];
-    }
-    //ROS_INFO("X:%f, Y:%f\n",x,y);
-}
+//void FlightControl::FlightControlNode::GetDeltaPositionCallBack(const FlightControl::opticalflow::ConstPtr& msg){
+//    std::vector<float> temp = msg->displacement;
+//    if(temp.size() == 2){
+//        x = temp[0];
+//        y = temp[1];
+//    }
+//    //ROS_INFO("X:%f, Y:%f\n",x,y);
+//}
 
 void FlightControl::FlightControlNode::GetGpsHeightCallBack(const sensor_msgs::NavSatFix::ConstPtr & msg){
     HeightGps = msg->altitude;
@@ -264,4 +280,32 @@ void FlightControl::FlightControlNode::GetVelocityCallBack(const geometry_msgs::
     //ROS_INFO("Vx:%f, Vy:%f, Vz:%f \n", HorizontalVelocity.y,HorizontalVelocity.x,HorizontalVelocity.z);
 
 }
+
+
+void FlightControl::FlightControlNode::GetHeightGuidanceCallBack(const sensor_msgs::LaserScan::ConstPtr &msg){
+    Height = msg->ranges[0];
+    ROS_INFO("Height from Guidance is: %f", Height);
+}
+
+void FlightControl::FlightControlNode::GetVelocityGuidanceCallBack(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
+{
+   this->Vx = msg->vector.x;
+   this->Vy = msg->vector.y;
+   this->Vz = msg->vector.z;
+   
+   ROS_INFO("Velocity: [ %f, %f, %f ]", Vx, Vy, Vz);
+   
+}
+
+void FlightControl::FlightControlNode::GetObstacleDistanceCallBack(const sensor_msgs::LaserScan::ConstPtr &msg){
+    this->ObstacleDistance = msg->ranges[0];
+    ROS_INFO("ObstacleDistance: %f", this->ObstacleDistance);
+}
+
+//void FlightControl::FlightControlNode::GetImuGuidanceCallBack(const geometry_msgs::TransformStamped::ConstPtr &msg){
+//    this->
+//}
+
+
+
 
