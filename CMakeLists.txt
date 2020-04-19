@@ -24,6 +24,7 @@ set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 include_directories(
         include
         ${catkin_INCLUDE_DIRS}
+        "/usr/include/eigen3"
 )
 
 
@@ -31,7 +32,11 @@ generate_messages(DEPENDENCIES std_msgs)
 catkin_package()
 
 add_executable(flightcontrol
-        src/main.cpp src/flightcontrol.cpp src/pid.cpp)
+        src/main.cpp 
+        src/flightcontrol.cpp 
+        src/pid.cpp
+        src/mpc.cpp
+        )
 
 target_link_libraries(flightcontrol
         ${catkin_LIBRARIES}
