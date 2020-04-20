@@ -14,7 +14,10 @@ namespace FlightControl{
 class mpc
 {
 public:
-    mpc();
+    mpc(int m,int n, int horizon,float mass, float g,
+        Eigen::VectorXf vQ,
+        Eigen::VectorXf vQ_,
+        Eigen::VectorXf vR);
     std::vector<float> mpcController(Eigen::VectorXf x, Eigen::VectorXf uPast);
     ~mpc() {}
 
@@ -24,33 +27,48 @@ private:
 
     void GaussNewtonMutipleShooting();
     void RolloutShot(int startIndex, int endIndex,
-                     Eigen::MatrixXf &xTraj,
-                     Eigen::MatrixXf &uTraj,
-                     Eigen::MatrixXf &xReference,
+                     const Eigen::MatrixXf &xTraj,
+                     const Eigen::MatrixXf &uTraj,
+                     const Eigen::MatrixXf &xReference,
                      Eigen::MatrixXf &stateOverWrite,
                      Eigen::MatrixXf &inputOverWrite,
                      std::vector<Eigen::MatrixXf> &L);
 
     void RolloutSingleShot(int n,
-                           Eigen::MatrixXf &xTraj,
-                           Eigen::MatrixXf &uTraj,
-                           Eigen::MatrixXf &xReference,
+                           const Eigen::MatrixXf &xTraj,
+                           const Eigen::MatrixXf &uTraj,
+                           const Eigen::MatrixXf &xReference,
                            Eigen::MatrixXf &stateOverWrite,
                            Eigen::MatrixXf &inputOverWrite,
                            std::vector<Eigen::MatrixXf> &L);
-    Eigen::VectorXf ComputeSingleDefect();
+
+    Eigen::VectorXf ComputeSingleDefect(int n,
+                                        const Eigen::MatrixXf &stateOverWrite,
+                                        const Eigen::MatrixXf &xTraj);
+    
     void UpdateCost();
-    void LQApproximate();
+    void LQApproximate(const Eigen::MatrixXf &xTraj,
+                       const Eigen::MatrixXf &uTraj);
+
     void BackwardIteration();
-    void ComputeStateAndControl();
-    Eigen::MatrixXf RK45(Eigen::MatrixXf (*f)(Eigen::VectorXf x,Eigen::VectorXf u),
+    void ComputeStateAndControl(Eigen::MatrixXf &diffu,
+                                Eigen::MatrixXf &diffx);
+
+    Eigen::MatrixXf RK45(Eigen::VectorXf (mpc::*f)(const Eigen::VectorXf &x,const Eigen::VectorXf &u),
                          float tStart,
                          float tEnd,
-                         Eigen::VectorXf x,
-                         Eigen::VectorXf u);
+                         const Eigen::VectorXf &x,
+                         const Eigen::VectorXf &u);
 
-    Eigen::MatrixXf Dynamic(Eigen::VectorXf x,Eigen::VectorXf u);
+    Eigen::VectorXf Dynamic(const Eigen::VectorXf &x, const Eigen::VectorXf &u);
+    
+    void LinearSystem(const Eigen::VectorXf xTraj,
+                      const Eigen::VectorXf uTraj,
+                      Eigen::MatrixXf &A,
+                      Eigen::MatrixXf &B);
 
+
+    Eigen::VectorXf (mpc::*pDynamic)(const Eigen::VectorXf &x, const Eigen::VectorXf &u);
 
     int Horizon;
     int controlDim;
@@ -76,19 +94,35 @@ private:
     Eigen::VectorXf qVector_; 
     Eigen::VectorXf rVector;
     
-    Eigen::MatrixXf Q;
+    Eigen::MatrixXf Qweight;
     Eigen::MatrixXf Q_;
-    Eigen::MatrixXf R;
+    Eigen::MatrixXf Rweight;
 
     std::vector<Eigen::MatrixXf> xOverWrite;
     std::vector<Eigen::MatrixXf> uOverWrite;
+
+    std::vector<Eigen::MatrixXf> A;
+    std::vector<Eigen::MatrixXf> B;
+    std::vector<Eigen::MatrixXf> Q;
+    std::vector<Eigen::MatrixXf> R;
+    std::vector<Eigen::MatrixXf> P;
+    std::vector<Eigen::MatrixXf> q;
+    std::vector<Eigen::MatrixXf> r;
+   
+    std::vector<Eigen::MatrixXf> S;
+    std::vector<Eigen::MatrixXf> s;
+    std::vector<Eigen::MatrixXf> h;
+    std::vector<Eigen::MatrixXf> G;
+    std::vector<Eigen::MatrixXf> H;
+    std::vector<Eigen::MatrixXf> l;
+    std::vector<Eigen::MatrixXf> L;
+    
 
     Eigen::MatrixXf d;
     
     float m;
     float g_;
 };
-
 
 }
 
