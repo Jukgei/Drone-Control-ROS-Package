@@ -18,7 +18,8 @@ public:
         Eigen::VectorXf vQ,
         Eigen::VectorXf vQ_,
         Eigen::VectorXf vR);
-    std::vector<float> mpcController(Eigen::VectorXf x, Eigen::VectorXf uPast);
+    std::vector<float> mpcController(Eigen::VectorXf x, Eigen::VectorXf uPast,
+                                     Eigen::VectorXf xRef);
     ~mpc() {}
 
 
@@ -84,8 +85,8 @@ private:
     Eigen::MatrixXf xInitTraj;
     Eigen::MatrixXf uInitTraj;
    
-    Eigen::VectorXf xRef;
-    Eigen::VectorXf uRef;
+    //Eigen::VectorXf xRef;
+    //Eigen::VectorXf uRef;
     
     Eigen::VectorXf xRefTraj;
     Eigen::MatrixXf uRefTraj;

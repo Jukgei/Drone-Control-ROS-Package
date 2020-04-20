@@ -15,7 +15,8 @@ FlightControl::mpc::mpc(int m, int n, int horizon,float mass, float g,
     this->g_ = g;
 }
 
-std::vector<float> FlightControl::mpc::mpcController(Eigen::VectorXf x, Eigen::VectorXf uPast){
+std::vector<float> FlightControl::mpc::mpcController(Eigen::VectorXf x, Eigen::VectorXf uPast,
+                                                     Eigen::VectorXf xRef){
     //set xRef and uRef 
     this->uRefTraj = Eigen::MatrixXf::Zero(controlDim,Horizon-1);   
     this->xRefTraj = Eigen::MatrixXf::Zero(stateDim,Horizon);   
@@ -243,8 +244,8 @@ void FlightControl::mpc::LQApproximate(const Eigen::MatrixXf &xTraj,
         R[i] = (RCost + RCost.transpose())*simulationDeltaT;
         P[i] = Eigen::MatrixXf::Zero(controlDim,stateDim);
 
-        Eigen::MatrixXf xDiff = xTraj.block(0,i,stateDim,1) - xRef.block(0,i,stateDim,1);
-        Eigen::MatrixXf uDiff = uTraj.block(0,i,controlDim,1) - uRef.block(0,i,controlDim,1);
+        Eigen::MatrixXf xDiff = xTraj.block(0,i,stateDim,1) - xRefTraj.block(0,i,stateDim,1);
+        Eigen::MatrixXf uDiff = uTraj.block(0,i,controlDim,1) - uRefTraj.block(0,i,controlDim,1);
        
         q[i] = (xDiff.transpose() * QCost.transpose() + xDiff.transpose() * QCost).transpose() * simulationDeltaT;
         r[i] = (uDiff.transpose() * RCost.transpose() + uDiff.transpose() * RCost).transpose() * simulationDeltaT;
@@ -258,8 +259,8 @@ void FlightControl::mpc::LQApproximate(const Eigen::MatrixXf &xTraj,
     R[Horizon-1] = (RCost + RCost.transpose())*simulationDeltaT;
     P[Horizon-1] = Eigen::MatrixXf::Zero(controlDim,stateDim);
 
-    Eigen::MatrixXf xDiff = xTraj.block(0,Horizon-1,stateDim,1) - xRef.block(0,Horizon-1,stateDim,1);
-    Eigen::MatrixXf uDiff = uTraj.block(0,Horizon-1,controlDim,1) - uRef.block(0,Horizon-1,controlDim,1);
+    Eigen::MatrixXf xDiff = xTraj.block(0,Horizon-1,stateDim,1) - xRefTraj.block(0,Horizon-1,stateDim,1);
+    Eigen::MatrixXf uDiff = uTraj.block(0,Horizon-1,controlDim,1) - uRefTraj.block(0,Horizon-1,controlDim,1);
        
     q[Horizon-1] = (xDiff.transpose() * QCost.transpose() + xDiff.transpose() * QCost).transpose() * simulationDeltaT;
     r[Horizon-1] = (uDiff.transpose() * RCost.transpose() + uDiff.transpose() * RCost).transpose() * simulationDeltaT;
