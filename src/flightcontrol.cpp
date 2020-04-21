@@ -1,5 +1,6 @@
 #include "../include/FlightControl/flightcontrol.hpp"
 #include "../include/FlightControl/pid.hpp"
+#include "../include/FlightControl/mpc.hpp"
 #include <thread>
 #include <iostream>
 #include <vector>
@@ -45,6 +46,8 @@ void FlightControl::FlightControlNode::InitSubcribers(ros::NodeHandle &n){
     GpsHeightSubscriber = n.subscribe<sensor_msgs::NavSatFix>
         ("dji_sdk/gps_position", 10, &FlightControl::FlightControlNode::GetGpsHeightCallBack,this);
 
+    LocalPositionSubscriber = n.subscribe<geometry_msgs::PointStamped>
+        ("dji_sdk/local_position", 10, &FlightControl::FlightControlNode::GetLocalPositionCallBack,this);
     //From radar
     HeightSubscriber = n.subscribe<FlightControl::state>
         ("state", 10, &FlightControl::FlightControlNode::GetHeightCallBack,this);
@@ -88,31 +91,64 @@ void FlightControl::FlightControlNode::FlightControlThread(){
     }
     ROS_INFO("Control Start");
     
-    FlightControl::pid myVxController(0.1,0.01,0.001,10,-10); 
+    //FlightControl::pid myVxController(0.1,0.01,0.001,10,-10); 
    
-    FlightControl::pid myThrustController(2.5, 0.0105, 0.05, 100.0, 0);
+    //FlightControl::pid myThrustController(2.5, 0.0105, 0.05, 100.0, 0);
 
     this->HeightAboveTakeoff = HeightGps;
+   
+    Eigen::VectorXf vQ(6); 
+    vQ[0] = 0.05; vQ[1] = 0.05; vQ[2] = 0.05;
+    vQ[3] = 0.01; vQ[4] = 0.01; vQ[5] = 0.01;
+    Eigen::VectorXf vQ_(6);
+    vQ_[0] = 0.05; vQ_[1] = 0.05; vQ_[2] = 0.05;
+    vQ_[3] = 0.01; vQ_[4] = 0.01; vQ_[5] = 0.01;
+    Eigen::VectorXf vR(4);
+    vR[0] = 1e-3;vR[1] = 1e-3;vR[2] = 1e-3;vR[3] = 1e-3;
 
+    FlightControl::mpc myMpcController(4,6,150,3.2,9.81,1,
+                                       vQ,vQ_,vR);
 
+    Eigen::VectorXf uPast(4);
+    uPast[0] = 0; uPast[1] = 0; uPast[2] = 0; uPast[3] = 0;
+    Eigen::VectorXf xRef(6);
+    xRef[0] = 10; xRef[1] = 10; xRef[2] = 10; 
+    xRef[3] = 0; xRef[4] = 0; xRef[5] = 0;
+
+    Eigen::VectorXf x(6);
+    x[0] = 0; x[1] = 0; x[2] = 0; 
+    x[3] = 0; x[4] = 0; x[5] = 0;
+    
     while(true){
        //run flight control algorithm 
         
-        double pitch = myVxController.PidOutput(1,HorizontalVelocity.y) ;
-        double thrust = myThrustController.PidOutput(20.0,HeightGps-HeightAboveTakeoff);
+        //double pitch = myVxController.PidOutput(1,HorizontalVelocity.y) ;
+        //double thrust = myThrustController.PidOutput(20.0,HeightGps-HeightAboveTakeoff);
+        
+        Eigen::VectorXf control = myMpcController.mpcController(x,uPast,xRef); 
+        
+        float roll   = control[0];
+        float pitch  = control[1];
+        float yaw    = control[2];
+        float thrust = control[3];
+
         sensor_msgs::Joy controlVelYawRate;
         uint8_t flag = (DJISDK::VERTICAL_THRUST   |
                     DJISDK::HORIZONTAL_ANGLE      |
                     DJISDK::YAW_RATE              |
                     DJISDK::HORIZONTAL_BODY       |
                     DJISDK::STABLE_DISABLE);
-        controlVelYawRate.axes.push_back(0);    //roll->Vy
+        controlVelYawRate.axes.push_back(roll);    //roll->Vy
         controlVelYawRate.axes.push_back(pitch);    //pitch->Vx
         controlVelYawRate.axes.push_back(thrust);    //thrust
         controlVelYawRate.axes.push_back(0);    //yawRate
         controlVelYawRate.axes.push_back(flag);
         
         CtrAttitudePublisher.publish(controlVelYawRate);
+       
+        x[0] = localPoint.x;         x[1] = localPoint.y;         x[2] = localPoint.z;
+        x[3] = HorizontalVelocity.x; x[4] = HorizontalVelocity.y; x[5] = HorizontalVelocity.z;
+        
         
         usleep(10000);
         
@@ -252,6 +288,10 @@ void FlightControl::FlightControlNode::GetDeltaPositionCallBack(const FlightCont
         y = temp[1];
     }
     //ROS_INFO("X:%f, Y:%f\n",x,y);
+}
+
+void FlightControl::FlightControlNode::GetLocalPositionCallBack(const geometry_msgs::PointStamped::ConstPtr& msg){
+    localPoint = msg->point;
 }
 
 void FlightControl::FlightControlNode::GetGpsHeightCallBack(const sensor_msgs::NavSatFix::ConstPtr & msg){

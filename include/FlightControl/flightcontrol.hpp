@@ -46,6 +46,7 @@ private:
     ros::Subscriber DeltaPositionSubscriber;
     ros::Subscriber HorizontalVelocitySubscriber;
     ros::Subscriber GpsHeightSubscriber;
+    ros::Subscriber LocalPositionSubscriber;
 
     ros::Publisher CtrAttitudePublisher;
    
@@ -59,9 +60,13 @@ private:
     void GetGpsHeightCallBack(const sensor_msgs::NavSatFix::ConstPtr& msg);
     void GetHeightCallBack(const FlightControl::state::ConstPtr& msg);
     void GetDeltaPositionCallBack(const FlightControl::opticalflow::ConstPtr& msg);
+    void GetLocalPositionCallBack(const geometry_msgs::PointStamped::ConstPtr& msg);
 
     geometry_msgs::Vector3 HorizontalVelocity;
     geometry_msgs::Quaternion Attitude;
+
+    geometry_msgs::Point localPoint;
+
     uint8_t FlightStatus;
     uint8_t DisplayMode;
 

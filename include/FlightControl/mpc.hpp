@@ -14,17 +14,16 @@ namespace FlightControl{
 class mpc
 {
 public:
-    mpc(int m,int n, int horizon,float mass, float g,
+    mpc(int m,int n, int horizon,float mass, float g, int shootingInterval,
         Eigen::VectorXf vQ,
         Eigen::VectorXf vQ_,
         Eigen::VectorXf vR);
-    std::vector<float> mpcController(Eigen::VectorXf x, Eigen::VectorXf uPast,
+    Eigen::VectorXf mpcController(Eigen::VectorXf x, Eigen::VectorXf uPast,
                                      Eigen::VectorXf xRef);
     ~mpc() {}
 
 
 private:
-
 
     void GaussNewtonMutipleShooting();
     void RolloutShot(int startIndex, int endIndex,

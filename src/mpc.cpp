@@ -1,9 +1,10 @@
 #include "../include/FlightControl/mpc.hpp"
 
-FlightControl::mpc::mpc(int m, int n, int horizon,float mass, float g,
+FlightControl::mpc::mpc(int m, int n, int horizon,float mass, float g,int shootingInterval,
                         Eigen::VectorXf vQ,
                         Eigen::VectorXf vQ_,
                         Eigen::VectorXf vR){
+    this->shootingInterval = shootingInterval;
     this->pDynamic = &mpc::Dynamic;
     this->controlDim = m;
     this->stateDim = n;
@@ -15,7 +16,7 @@ FlightControl::mpc::mpc(int m, int n, int horizon,float mass, float g,
     this->g_ = g;
 }
 
-std::vector<float> FlightControl::mpc::mpcController(Eigen::VectorXf x, Eigen::VectorXf uPast,
+Eigen::VectorXf FlightControl::mpc::mpcController(Eigen::VectorXf x, Eigen::VectorXf uPast,
                                                      Eigen::VectorXf xRef){
     //set xRef and uRef 
     this->uRefTraj = Eigen::MatrixXf::Zero(controlDim,Horizon-1);   
@@ -35,8 +36,8 @@ std::vector<float> FlightControl::mpc::mpcController(Eigen::VectorXf x, Eigen::V
     //GNMS
     GaussNewtonMutipleShooting();
 
-    std::vector<float> tmp ;
-    return tmp;
+    Eigen::VectorXf res = uOverWrite[2].block(0,0,controlDim,1);
+    return res;
 }
 
 void FlightControl::mpc::GaussNewtonMutipleShooting(){
@@ -95,8 +96,12 @@ void FlightControl::mpc::GaussNewtonMutipleShooting(){
                 uInitTraj,
                 xInitTraj,
                 xOverWriteRecord[1], uOverWriteRecord[1], L);
-}
 
+    this->xOverWrite = xOverWriteRecord;
+    this->uOverWrite = uOverWriteRecord;
+
+
+} 
 void FlightControl::mpc::RolloutShot(int startIndex, int endIndex,
                                      const Eigen::MatrixXf &xTraj,
                                      const Eigen::MatrixXf &uTraj,
@@ -164,6 +169,7 @@ void FlightControl::mpc::RolloutSingleShot(int n,
                     xOverWriteBuf.block(0,shiftIndex,stateDim,1),
                     uOverWriteBuf.block(0,shiftIndex,controlDim,1));
 
+        
         xOverWriteBuf.block(0,shiftIndex,stateDim,1) = xBuf.block(0,simulationPoint-1,stateDim,1);
 
         if(i == Horizon - 1)
