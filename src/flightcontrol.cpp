@@ -71,6 +71,8 @@ void FlightControl::FlightControlNode::InitServices(ros::NodeHandle &n){
     DroneTaskControlService = n.serviceClient<dji_sdk::DroneTaskControl>
         ("dji_sdk/drone_task_control");
 
+    SetLocalPositionRefService = n.serviceClient<dji_sdk::SetLocalPosRef> 
+        ("dji_sdk/set_local_pos_ref");
 }
 
 void FlightControl::FlightControlNode::InitFlightControlThread(){
@@ -80,6 +82,9 @@ void FlightControl::FlightControlNode::InitFlightControlThread(){
 
 void FlightControl::FlightControlNode::FlightControlThread(){
     //take off
+    if(!setLocalPosition()){
+        ROS_ERROR("GPS health insufficient");
+    }
     bool ControlAuthority = ObtainControl();
     if(!ControlAuthority){
         ROS_ERROR("Cannot obtain control");
@@ -258,6 +263,14 @@ bool FlightControl::FlightControlNode::ObtainControl(){
   }
 
   return true;
+}
+
+bool FlightControl::FlightControlNode::setLocalPosition()
+{
+  dji_sdk::SetLocalPosRef localPosReferenceSetter;
+  SetLocalPositionRefService.call(localPosReferenceSetter);
+
+  return (bool)localPosReferenceSetter.response.result;
 }
 
 bool FlightControl::FlightControlNode::TakeoffLand(int task){

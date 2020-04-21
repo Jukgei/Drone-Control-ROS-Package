@@ -14,7 +14,9 @@ namespace FlightControl{
 class mpc
 {
 public:
-    mpc(int m,int n, int horizon,float mass, float g, int shootingInterval,
+    mpc(int m,int n, int horizon,float mass,
+        float g, int shootingInterval,
+        float dt, int simulationPoint,
         Eigen::VectorXf vQ,
         Eigen::VectorXf vQ_,
         Eigen::VectorXf vR);
@@ -87,7 +89,7 @@ private:
     //Eigen::VectorXf xRef;
     //Eigen::VectorXf uRef;
     
-    Eigen::VectorXf xRefTraj;
+    Eigen::MatrixXf xRefTraj;
     Eigen::MatrixXf uRefTraj;
     
     Eigen::VectorXf qVector; 

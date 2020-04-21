@@ -11,7 +11,7 @@
 //DJI include 
 #include "../../../../devel/include/dji_sdk/DroneTaskControl.h"
 #include "../../../../devel/include/dji_sdk/SDKControlAuthority.h"
-
+#include "../../../../devel/include/dji_sdk/SetLocalPosRef.h"
 #include "../../../dji_sdk/include/dji_sdk/dji_sdk.h"
 
 #include <tf/tf.h>
@@ -52,6 +52,7 @@ private:
    
     ros::ServiceClient CtrlAuthorityService;
     ros::ServiceClient DroneTaskControlService;
+    ros::ServiceClient SetLocalPositionRefService;
 
     void GetQuaternionCallBack(const geometry_msgs::QuaternionStamped::ConstPtr& msg);
     void GetFlightStatusCallBack(const std_msgs::UInt8::ConstPtr& msg);
@@ -61,6 +62,8 @@ private:
     void GetHeightCallBack(const FlightControl::state::ConstPtr& msg);
     void GetDeltaPositionCallBack(const FlightControl::opticalflow::ConstPtr& msg);
     void GetLocalPositionCallBack(const geometry_msgs::PointStamped::ConstPtr& msg);
+
+    bool setLocalPosition();
 
     geometry_msgs::Vector3 HorizontalVelocity;
     geometry_msgs::Quaternion Attitude;
