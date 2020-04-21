@@ -106,7 +106,7 @@ void FlightControl::FlightControlNode::FlightControlThread(){
     Eigen::VectorXf vR(4);
     vR[0] = 1e-3;vR[1] = 1e-3;vR[2] = 1e-3;vR[3] = 1e-3;
 
-    FlightControl::mpc myMpcController(4,6,150,3.2,9.81,1,
+    FlightControl::mpc myMpcController(4,6,150,3.2,9.81,1,0.01,5,
                                        vQ,vQ_,vR);
 
     Eigen::VectorXf uPast(4);
@@ -119,6 +119,7 @@ void FlightControl::FlightControlNode::FlightControlThread(){
     x[0] = 0; x[1] = 0; x[2] = 0; 
     x[3] = 0; x[4] = 0; x[5] = 0;
     
+    std::cout<<"Init x and u success"<<std::endl;
     while(true){
        //run flight control algorithm 
         
@@ -126,7 +127,8 @@ void FlightControl::FlightControlNode::FlightControlThread(){
         //double thrust = myThrustController.PidOutput(20.0,HeightGps-HeightAboveTakeoff);
         
         Eigen::VectorXf control = myMpcController.mpcController(x,uPast,xRef); 
-        
+        std::cout<<"control"<<std::endl;
+        std::cout<<control<<std::endl;
         float roll   = control[0];
         float pitch  = control[1];
         float yaw    = control[2];
@@ -292,6 +294,7 @@ void FlightControl::FlightControlNode::GetDeltaPositionCallBack(const FlightCont
 
 void FlightControl::FlightControlNode::GetLocalPositionCallBack(const geometry_msgs::PointStamped::ConstPtr& msg){
     localPoint = msg->point;
+    ROS_INFO("x: %f,y:%f,z:%f", localPoint.x,localPoint.y,localPoint.z);
 }
 
 void FlightControl::FlightControlNode::GetGpsHeightCallBack(const sensor_msgs::NavSatFix::ConstPtr & msg){
