@@ -9,6 +9,8 @@
 using std::chrono::high_resolution_clock;
 using std::chrono::milliseconds;
 
+#define PI 3.1415926
+
 namespace FlightControl{
 
 class mpc
@@ -22,6 +24,7 @@ public:
         Eigen::VectorXf vR);
     Eigen::VectorXf mpcController(Eigen::VectorXf x, Eigen::VectorXf uPast,
                                      Eigen::VectorXf xRef);
+    Eigen::VectorXf UAVConstraint(Eigen::VectorXf control);
     ~mpc() {}
 
 
@@ -69,7 +72,8 @@ private:
                       Eigen::MatrixXf &A,
                       Eigen::MatrixXf &B);
 
-
+    float minDisturb(float a);
+    Eigen::VectorXf ConvertUAVControl(Eigen::VectorXf a);
     Eigen::VectorXf (mpc::*pDynamic)(const Eigen::VectorXf &x, const Eigen::VectorXf &u);
 
     int Horizon;
@@ -118,7 +122,6 @@ private:
     std::vector<Eigen::MatrixXf> H;
     std::vector<Eigen::MatrixXf> l;
     std::vector<Eigen::MatrixXf> L;
-    
 
     Eigen::MatrixXf d;
     
