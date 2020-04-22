@@ -109,7 +109,7 @@ void FlightControl::FlightControlNode::FlightControlThread(){
     vQ_[0] = 1; vQ_[1] = 1; vQ_[2] = 1;
     vQ_[3] = 0.5;  vQ_[4] = 0.5;  vQ_[5] = 0.5;
     Eigen::VectorXf vR(4);
-    vR[0] = 0.08;vR[1] = 0.08;vR[2] = 0.05;vR[3] = 0.001;
+    vR[0] = 0.05;vR[1] = 0.05;vR[2] = 0.05;vR[3] = 0.001;
 
     FlightControl::mpc myMpcController(4,6,100,3.3,9.81,1,0.06,5,
                                        vQ,vQ_,vR);
