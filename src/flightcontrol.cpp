@@ -117,7 +117,7 @@ void FlightControl::FlightControlNode::FlightControlThread(){
     Eigen::VectorXf uPast(4);
     uPast[0] = 0; uPast[1] = 0; uPast[2] = 0; uPast[3] = 3.3 * 9.81;
     Eigen::VectorXf xRef(6);
-    xRef[0] = 5; xRef[1] = 0; xRef[2] = 10; 
+    xRef[0] = 0; xRef[1] = 0; xRef[2] = 50; 
     xRef[3] = 0; xRef[4] = 0; xRef[5] = 0;
 
     Eigen::VectorXf x(6);
@@ -143,15 +143,15 @@ void FlightControl::FlightControlNode::FlightControlThread(){
         std::cout<<"Running Time:"<<timeInterval.count() << "ms"<<std::endl;                               //Debug
         std::cout<<"control:";
         //std::cout<<control<<std::endl;
-        float roll   = control[0];
-        float pitch  = control[1];
+        float pitch  = -control[0];
+        float roll   = control[1];
         float yaw    = control[2];
         float thrust = control[3]/(3.3 *(9.81 + 7.0))*100;
         std::cout<<"roll:"<<roll<<
             " pitch:"<<pitch<<
             " yaw:"<<yaw<<
-            " thrust"<<thrust<<std::endl
-            " Real thrust"<<control[3]<<std::endl;
+            " thrust"<<thrust<<
+            " Real thrust"<<(control[3])<<std::endl;
         sensor_msgs::Joy controlVelYawRate;
         uint8_t flag = (DJISDK::VERTICAL_THRUST   |
                     DJISDK::HORIZONTAL_ANGLE      |
@@ -168,7 +168,8 @@ void FlightControl::FlightControlNode::FlightControlThread(){
        
         x[0] = localPoint.x;         x[1] = localPoint.y;         x[2] = localPoint.z;
         x[3] = HorizontalVelocity.x; x[4] = HorizontalVelocity.y; x[5] = HorizontalVelocity.z;
-       
+        // first test one x state.
+        // second test roll\pitch and yaw angle;
         //uPast = control;
         //uPast[3] = uPast[3] > 40 ? 40: uPast[3];
         //uPast[3] = control[3];
