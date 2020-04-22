@@ -103,15 +103,15 @@ void FlightControl::FlightControlNode::FlightControlThread(){
     this->HeightAboveTakeoff = HeightGps;
    
     Eigen::VectorXf vQ(6); 
-    vQ[0] = 0.05; vQ[1] = 0.05; vQ[2] = 0.05;
-    vQ[3] = 0.01; vQ[4] = 0.01; vQ[5] = 0.01;
+    vQ[0] = 0.01; vQ[1] = 0.01; vQ[2] = 0.01;
+    vQ[3] = 0.005; vQ[4] = 0.005; vQ[5] = 0.005;
     Eigen::VectorXf vQ_(6);
     vQ_[0] = 1; vQ_[1] = 1; vQ_[2] = 1;
     vQ_[3] = 0.5;  vQ_[4] = 0.5;  vQ_[5] = 0.5;
     Eigen::VectorXf vR(4);
-    vR[0] = 0.5;vR[1] = 0.5;vR[2] = 0.5;vR[3] = 0.01;
+    vR[0] = 0.8;vR[1] = 0.8;vR[2] = 0.5;vR[3] = 0.01;
 
-    FlightControl::mpc myMpcController(4,6,150,3.3,9.81,1,0.06,5,
+    FlightControl::mpc myMpcController(4,6,100,3.3,9.81,1,0.06,5,
                                        vQ,vQ_,vR);
 
     Eigen::VectorXf uPast(4);
@@ -126,8 +126,8 @@ void FlightControl::FlightControlNode::FlightControlThread(){
     
     std::cout<<"Init x and u success"<<std::endl;
     //std::cout<<x<<std::endl;
-
-    while(true){
+    ros::Rate LoopRate(15);
+    while(ros::ok()){
        //run flight control algorithm 
         
         //double pitch = myVxController.PidOutput(1,HorizontalVelocity.y) ;
@@ -150,7 +150,8 @@ void FlightControl::FlightControlNode::FlightControlThread(){
         std::cout<<"roll:"<<roll<<
             " pitch:"<<pitch<<
             " yaw:"<<yaw<<
-            " thrust"<<thrust<<std::endl;
+            " thrust"<<thrust<<std::endl
+            " Real thrust"<<control[3]<<std::endl;
         sensor_msgs::Joy controlVelYawRate;
         uint8_t flag = (DJISDK::VERTICAL_THRUST   |
                     DJISDK::HORIZONTAL_ANGLE      |
@@ -168,12 +169,11 @@ void FlightControl::FlightControlNode::FlightControlThread(){
         x[0] = localPoint.x;         x[1] = localPoint.y;         x[2] = localPoint.z;
         x[3] = HorizontalVelocity.x; x[4] = HorizontalVelocity.y; x[5] = HorizontalVelocity.z;
        
-        uPast = control;
-        uPast[3] = uPast[3] > 40 ? 40: uPast[3];
+        //uPast = control;
+        //uPast[3] = uPast[3] > 40 ? 40: uPast[3];
         //uPast[3] = control[3];
         //std::cout<<"state"<<x<<std::endl;
-        
-        usleep(100000);
+        LoopRate.sleep();
         
     }
     if(TakeoffLand(dji_sdk::DroneTaskControl::Request::TASK_LAND))
