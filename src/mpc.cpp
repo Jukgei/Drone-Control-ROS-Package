@@ -77,15 +77,15 @@ Eigen::VectorXf FlightControl::mpc::mpcController(Eigen::VectorXf x, Eigen::Vect
     //std::cout<<"GNMS success"<<std::endl;
     //std::cout<<uOverWrite[1]<<std::endl;
     Eigen::VectorXf res = uOverWrite[1].block(0,0,controlDim,1);
-    std::cout<<"u"<<std::endl;
-    std::cout<<uOverWrite[1].block(0,0,controlDim,12)<<std::endl;
-    std::cout<<"x"<<std::endl;
-    std::cout<<xOverWrite[1].block(0,0,stateDim,12)<<std::endl;
-    std::cout<<"u end"<<std::endl;
-    std::cout<<uOverWrite[1].block(0,80,controlDim,12)<<std::endl;
-    std::cout<<"x end"<<std::endl;
-    std::cout<<xOverWrite[1].block(0,80,stateDim,12)<<std::endl;
-    while(1);
+    //std::cout<<"u"<<std::endl;
+    //std::cout<<uOverWrite[1].block(0,0,controlDim,12)<<std::endl;
+    //std::cout<<"x"<<std::endl;
+    //std::cout<<xOverWrite[1].block(0,0,stateDim,12)<<std::endl;
+    //std::cout<<"u end"<<std::endl;
+    //std::cout<<uOverWrite[1].block(0,80,controlDim,12)<<std::endl;
+    //std::cout<<"x end"<<std::endl;
+    //std::cout<<xOverWrite[1].block(0,80,stateDim,12)<<std::endl;
+    //while(1);
     return res;
 }
 
