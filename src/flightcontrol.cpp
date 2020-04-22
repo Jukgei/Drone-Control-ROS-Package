@@ -94,11 +94,11 @@ void FlightControl::FlightControlNode::FlightControlThread(){
     if(!isTakeoff){
         ROS_ERROR("Cannot Takeoff");
     }
-    ROS_INFO("Control Start");
+    //ROS_INFO("Control Start");
     
     //FlightControl::pid myVxController(0.1,0.01,0.001,10,-10); 
    
-    //FlightControl::pid myThrustController(2.5, 0.0105, 0.05, 100.0, 0);
+    //FlightControl::pid myThrustController(2.5, 0.0105, 0.005, 100.0, 0);
 
     this->HeightAboveTakeoff = HeightGps;
    
@@ -106,45 +106,57 @@ void FlightControl::FlightControlNode::FlightControlThread(){
     vQ[0] = 0.05; vQ[1] = 0.05; vQ[2] = 0.05;
     vQ[3] = 0.01; vQ[4] = 0.01; vQ[5] = 0.01;
     Eigen::VectorXf vQ_(6);
-    vQ_[0] = 0.05; vQ_[1] = 0.05; vQ_[2] = 0.05;
-    vQ_[3] = 0.01; vQ_[4] = 0.01; vQ_[5] = 0.01;
+    vQ_[0] = 1; vQ_[1] = 1; vQ_[2] = 1;
+    vQ_[3] = 0.5;  vQ_[4] = 0.5;  vQ_[5] = 0.5;
     Eigen::VectorXf vR(4);
-    vR[0] = 1e-3;vR[1] = 1e-3;vR[2] = 1e-3;vR[3] = 1e-3;
+    vR[0] = 0.5;vR[1] = 0.5;vR[2] = 0.5;vR[3] = 0.01;
 
-    FlightControl::mpc myMpcController(4,6,150,3.2,9.81,1,0.01,5,
+    FlightControl::mpc myMpcController(4,6,150,3.3,9.81,1,0.06,5,
                                        vQ,vQ_,vR);
 
     Eigen::VectorXf uPast(4);
-    uPast[0] = 0; uPast[1] = 0; uPast[2] = 0; uPast[3] = 0;
+    uPast[0] = 0; uPast[1] = 0; uPast[2] = 0; uPast[3] = 3.3 * 9.81;
     Eigen::VectorXf xRef(6);
-    xRef[0] = 10; xRef[1] = 10; xRef[2] = 10; 
+    xRef[0] = 5; xRef[1] = 0; xRef[2] = 10; 
     xRef[3] = 0; xRef[4] = 0; xRef[5] = 0;
 
     Eigen::VectorXf x(6);
-    x[0] = 0; x[1] = 0; x[2] = 0; 
-    x[3] = 0; x[4] = 0; x[5] = 0;
+    x[0] = localPoint.x;         x[1] = localPoint.y;         x[2] = localPoint.z;
+    x[3] = HorizontalVelocity.x; x[4] = HorizontalVelocity.y; x[5] = HorizontalVelocity.z;
     
     std::cout<<"Init x and u success"<<std::endl;
+    //std::cout<<x<<std::endl;
+
     while(true){
        //run flight control algorithm 
         
         //double pitch = myVxController.PidOutput(1,HorizontalVelocity.y) ;
         //double thrust = myThrustController.PidOutput(20.0,HeightGps-HeightAboveTakeoff);
         
+        high_resolution_clock::time_point beginTime = high_resolution_clock::now();     //Debug 
+        
+        //float pidThrust = myThrustController.PidOutput(10,localPoint.z)+ 20;
         Eigen::VectorXf control = myMpcController.mpcController(x,uPast,xRef); 
-        std::cout<<"control"<<std::endl;
-        std::cout<<control<<std::endl;
+        Eigen::VectorXf res = myMpcController.UAVConstraint(control);
+        high_resolution_clock::time_point endTime = high_resolution_clock::now();       //Debug
+        milliseconds timeInterval = std::chrono::duration_cast<milliseconds>(endTime-beginTime); //Debug
+        std::cout<<"Running Time:"<<timeInterval.count() << "ms"<<std::endl;                               //Debug
+        std::cout<<"control:";
+        //std::cout<<control<<std::endl;
         float roll   = control[0];
         float pitch  = control[1];
         float yaw    = control[2];
-        float thrust = control[3];
-
+        float thrust = control[3]/(3.3 *(9.81 + 7.0))*100;
+        std::cout<<"roll:"<<roll<<
+            " pitch:"<<pitch<<
+            " yaw:"<<yaw<<
+            " thrust"<<thrust<<std::endl;
         sensor_msgs::Joy controlVelYawRate;
         uint8_t flag = (DJISDK::VERTICAL_THRUST   |
                     DJISDK::HORIZONTAL_ANGLE      |
                     DJISDK::YAW_RATE              |
                     DJISDK::HORIZONTAL_BODY       |
-                    DJISDK::STABLE_DISABLE);
+                   DJISDK::STABLE_DISABLE);
         controlVelYawRate.axes.push_back(roll);    //roll->Vy
         controlVelYawRate.axes.push_back(pitch);    //pitch->Vx
         controlVelYawRate.axes.push_back(thrust);    //thrust
@@ -155,9 +167,13 @@ void FlightControl::FlightControlNode::FlightControlThread(){
        
         x[0] = localPoint.x;         x[1] = localPoint.y;         x[2] = localPoint.z;
         x[3] = HorizontalVelocity.x; x[4] = HorizontalVelocity.y; x[5] = HorizontalVelocity.z;
+       
+        uPast = control;
+        uPast[3] = uPast[3] > 40 ? 40: uPast[3];
+        //uPast[3] = control[3];
+        //std::cout<<"state"<<x<<std::endl;
         
-        
-        usleep(10000);
+        usleep(100000);
         
     }
     if(TakeoffLand(dji_sdk::DroneTaskControl::Request::TASK_LAND))
@@ -307,12 +323,12 @@ void FlightControl::FlightControlNode::GetDeltaPositionCallBack(const FlightCont
 
 void FlightControl::FlightControlNode::GetLocalPositionCallBack(const geometry_msgs::PointStamped::ConstPtr& msg){
     localPoint = msg->point;
-    ROS_INFO("x: %f,y:%f,z:%f", localPoint.x,localPoint.y,localPoint.z);
+    //ROS_INFO("x: %f,y:%f,z:%f", localPoint.x,localPoint.y,localPoint.z);
 }
 
 void FlightControl::FlightControlNode::GetGpsHeightCallBack(const sensor_msgs::NavSatFix::ConstPtr & msg){
     HeightGps = msg->altitude;
-    ROS_INFO("HeightGps: %lf",HeightGps);
+    //ROS_INFO("HeightGps: %lf",HeightGps);
 }
 
 void FlightControl::FlightControlNode::GetVelocityCallBack(const geometry_msgs::Vector3Stamped::ConstPtr & msg){
