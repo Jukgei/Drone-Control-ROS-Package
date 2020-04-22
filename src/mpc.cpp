@@ -144,6 +144,7 @@ void FlightControl::mpc::GaussNewtonMutipleShooting(){
     //
     ////update delta x and delta u
     //
+    //
     
     Eigen::MatrixXf diffu = Eigen::MatrixXf::Zero(m,Horizon-1);
     Eigen::MatrixXf diffx = Eigen::MatrixXf::Zero(n,Horizon);
@@ -352,9 +353,9 @@ Eigen::VectorXf FlightControl::mpc::Dynamic(const Eigen::VectorXf &x,const Eigen
     float psi = u[2];
     float thrust = u[3];
     
-    float ax = (cos(phi) * sin(-theta)*cos(psi) + sin(phi) * sin(phi))* thrust / m;
-    float ay = (cos(phi) * sin(-theta)*sin(psi) - sin(phi) * cos(psi))* thrust / m;
-    float az = (cos(phi) * cos(-theta))* thrust / m - g_;
+    float ax = (cos(phi) * sin(theta)*cos(psi) + sin(phi) * sin(psi))* thrust / m;
+    float ay = (cos(phi) * sin(theta)*sin(psi) - sin(phi) * cos(psi))* thrust / m;
+    float az = (cos(phi) * cos(theta))* thrust / m - g_;
 
     //vx = vx + ax * simulationDeltaT;
     //vy = vy + ay * simulationDeltaT;
