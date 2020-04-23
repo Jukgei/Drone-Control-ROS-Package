@@ -608,7 +608,9 @@ Eigen::VectorXf FlightControl::mpc::UAVConstraint(Eigen::VectorXf control){
 
 Eigen::VectorXf FlightControl::mpc::ConvertUAVControl(Eigen::VectorXf a){
     Eigen::VectorXf c = a;
-
+    
+    float box = 5.0;
+    float rad = box / 180 *PI;
     c[0] = c[0] - ((int) (c[0] / (2*PI) )) * 2 * PI;
     c[1] = c[1] - ((int) (c[1] / (2*PI) )) * 2 * PI;
     c[2] = c[2] - ((int) (c[2] / (2*PI) )) * 2 * PI;
@@ -627,8 +629,13 @@ Eigen::VectorXf FlightControl::mpc::ConvertUAVControl(Eigen::VectorXf a){
     //
     c[1] = c[1] >( PI/2) ? (c[1] - PI):c[1];
     c[1] = c[1] <(-PI/2) ? (c[1] + PI):c[1];
+
+    c[0] = c[0] >  rad ?  rad: c[0];
+    c[0] = c[0] < -rad ? -rad: c[0];
     //std::cout<<"a"<<std::endl;
     //std::cout<<a<<std::endl;
+    c[1] = c[1] >  rad ?  rad: c[1];
+    c[1] = c[1] < -rad ? -rad: c[1];
     //std::cout<<"c"<<std::endl;
     //std::cout<<c<<std::endl;
     return c;

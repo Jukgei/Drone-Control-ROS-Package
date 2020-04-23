@@ -109,9 +109,9 @@ void FlightControl::FlightControlNode::FlightControlThread(){
     vQ_[0] = 1; vQ_[1] = 1; vQ_[2] = 1;
     vQ_[3] = 0.5;  vQ_[4] = 0.5;  vQ_[5] = 0.5;
     Eigen::VectorXf vR(4);
-    vR[0] = 0.05;vR[1] = 0.05;vR[2] = 0.05;vR[3] = 0.001;
+    vR[0] = 0.8;vR[1] = 0.8;vR[2] = 0.05;vR[3] = 0.001;
 
-    FlightControl::mpc myMpcController(4,6,100,3.3,9.81,1,0.06,5,
+    FlightControl::mpc myMpcController(4,6,50,3.3,9.81,1,0.02,5,
                                        vQ,vQ_,vR);
 
     Eigen::VectorXf uPast(4);
@@ -126,7 +126,7 @@ void FlightControl::FlightControlNode::FlightControlThread(){
     
     std::cout<<"Init x and u success"<<std::endl;
     //std::cout<<x<<std::endl;
-    ros::Rate LoopRate(15);
+    ros::Rate LoopRate(20);
     while(ros::ok()){
        //run flight control algorithm 
         
