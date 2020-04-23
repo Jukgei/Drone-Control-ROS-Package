@@ -132,7 +132,12 @@ void FlightControl::FlightControlNode::FlightControlThread(){
         
         //double pitch = myVxController.PidOutput(1,HorizontalVelocity.y) ;
         //double thrust = myThrustController.PidOutput(20.0,HeightGps-HeightAboveTakeoff);
-        
+        if(x[2] > 19)
+        {
+            xRef[1] = 10;
+            xRef[0] = 10;
+
+        }
         high_resolution_clock::time_point beginTime = high_resolution_clock::now();     //Debug 
         
         //float pidThrust = myThrustController.PidOutput(10,localPoint.z)+ 20;
