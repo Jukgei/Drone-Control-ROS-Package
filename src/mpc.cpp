@@ -622,11 +622,11 @@ Eigen::VectorXf FlightControl::mpc::ConvertUAVControl(Eigen::VectorXf a){
     c[1] = c[1] < -PI ? (c[1] + 2 * PI): c[1];
     c[2] = c[2] < -PI ? (c[2] + 2 * PI): c[2];
    
-    //c[0] = c[0] >( PI/2) ? (c[0] - PI):c[0];
-    //c[0] = c[0] <(-PI/2) ? (c[0] + PI):c[0];
-    ////
-    //c[1] = c[1] >( PI/2) ? (c[1] - PI):c[1];
-    //c[1] = c[1] <(-PI/2) ? (c[1] + PI):c[1];
+    c[0] = c[0] >( PI/2) ? (c[0] - PI):c[0];
+    c[0] = c[0] <(-PI/2) ? (c[0] + PI):c[0];
+    //
+    c[1] = c[1] >( PI/2) ? (c[1] - PI):c[1];
+    c[1] = c[1] <(-PI/2) ? (c[1] + PI):c[1];
     //std::cout<<"a"<<std::endl;
     //std::cout<<a<<std::endl;
     //std::cout<<"c"<<std::endl;
