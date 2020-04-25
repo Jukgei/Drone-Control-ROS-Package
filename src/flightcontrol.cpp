@@ -117,7 +117,7 @@ void FlightControl::FlightControlNode::FlightControlThread(){
     Eigen::VectorXf uPast(4);
     uPast[0] = 0; uPast[1] = 0; uPast[2] = 0; uPast[3] = 3.3 * 9.81;
     Eigen::VectorXf xRef(6);
-    xRef[0] = 0; xRef[1] = 0; xRef[2] = 20; 
+    xRef[0] = 0; xRef[1] = 0; xRef[2] = 1.7; 
     xRef[3] = 0; xRef[4] = 0; xRef[5] = 0;
 
     Eigen::VectorXf x(6);
@@ -132,12 +132,12 @@ void FlightControl::FlightControlNode::FlightControlThread(){
         
         //double pitch = myVxController.PidOutput(1,HorizontalVelocity.y) ;
         //double thrust = myThrustController.PidOutput(20.0,HeightGps-HeightAboveTakeoff);
-        if(x[2] > 19)
-        {
-            xRef[1] = 10;
-            xRef[0] = 10;
+        //if(x[2] > 19)
+        //{
+        //    xRef[1] = 10;
+        //    xRef[0] = 10;
 
-        }
+        //}
         high_resolution_clock::time_point beginTime = high_resolution_clock::now();     //Debug 
         
         //float pidThrust = myThrustController.PidOutput(10,localPoint.z)+ 20;
